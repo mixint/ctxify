@@ -1,3 +1,5 @@
+const path = require('path')
+
 Object.prototype.dotAccess = function(dotpath){
 	let localctx = Object.assign({}, this) // create copy of ctx
 	let keys = dotpath.split('.')
@@ -54,17 +56,20 @@ module.exports.write = function _write(magicArg, options, data){
 	return data.dotAccess(magicArg)
 }
 
-module.exports.require = function _require(magicArg, options, data){
+module.exports.require = function _require(magicArg, options, data, ctxify){
 	// arg is the name of the file
 	// target is the options object in this case
 	// {"#!require ./somecomponent":{}}
 	// maybe these attributes get merged with the top level... could be useful...
-	let newTarget = require(magicArg)
+	let pathName = path.join(process.cwd(), magicArg)
+	console.log("pathname", pathName)
+
+	let newTarget = require(pathName)
 	//Object.assign(newTarget, target)
-	let [tagName, attributes] = Object.entries(newTarget).pop()
-	let newTarget = {[tagName]: 
-		Object.assign({}, attributes, options)
-	}
+
+	let tagName = Object.keys(newTarget).pop()
+
+	Object.assign(newTarget[tagName], options)
 
 	return ctxify(newTarget, data)
 }

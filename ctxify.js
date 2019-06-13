@@ -37,7 +37,7 @@ module.exports.ctxify = function ctxify(view, data){
 		let magicArg  = label.slice(spaceIndex + 1);
 		let magicFunction = magicWords[magicWord] // this is cached, doesn't read from disk every time
 		// target from above...		
-		return magicFunction(magicArg, options, data)
+		return magicFunction(magicArg, options, data, ctxify)
 
 	} else {
 		//labeled object, leave label intact, check each attribute
