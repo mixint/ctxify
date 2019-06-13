@@ -1,0 +1,11 @@
+{
+  "name": "@gumballmachine/ctxify",
+  "version": "0.1.0",
+  "description": "Functional Document Templates for Hypermedia",
+  "main": "index.js",
+  "author": "Colten Jackson <jazzyjackson@gmail.com>",
+  "license": "BSD-3-Clause",
+  "dependencies": {
+    "@mixint/transflect": "^0.8.3"
+  }
+}
