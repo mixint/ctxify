@@ -1,0 +1,145 @@
+{"style":{
+	"*": {
+		"border":"none",
+		"box-sizing":"border-box"
+	},
+	"any-link": {
+		"color": "pink",
+		"text-decoration": "none"
+	},
+	"@media screen and min-width 800px": {
+		"*": {
+			"display": "block-inline"
+		}
+	}
+}}
+
+{"div":{
+	"id":"someid",
+	"style": {
+		"border": "1px solid blue",
+		"background": "rgba(255,10,10,0.5)"
+	}
+}}
+
+{
+	"definitions": {
+		"CSSRuleValuePairs": {
+			"type":"object",
+			"additionalProperties": {
+				"type": "string"
+			}
+		},
+		"CSSSelectorSet":{
+			"type":"object",
+			"patternProperties": {
+				"not": {
+					"$ref":"#/definitions/CSSRuleValuePairs"	
+				}
+			}
+		},
+		"CSSAtRule":{
+			"type":"object",
+			"patternProperties": {
+				"@.+":{
+					"$ref":"#/definitions/CSSSelectorSet"
+				}
+			}
+		},
+		"StyleElement": {
+			"maxProperties": 1,
+			"properties": {
+				"style": {
+					"type":"object",
+					"additionalProperties": {
+						"$ref":"#/definitions/CSSSelectorSet"
+					}
+				}
+			}
+		},
+		"AnyElement": {
+			"type":"object",
+				"maxProperties": 1,
+				"patternProperties": {
+					"^[A-Za-z0-9_]+": {
+						"type": "object",
+						"properties": {
+							"style": {"$ref":"CSSRuleValuePairs"},
+							"childNodes": {
+								"type":"array",
+								"items": {
+									"anyOf": [{
+										"$ref":"#/definitions/AnyElement",
+									}, {
+										"$ref":"#/definitions/StyleElement",
+									}]
+								}
+							}
+						},
+						"additionalProperties": {
+							"type":"string"
+						}
+					}
+				}
+			}
+		}
+	}
+}
+/*
+"properties": {
+		"style":{
+			"description": "This is inline style, rendered as an HTML attribute, but converted to CSS Syntax.",
+			"$ref":"/RuleValuePairs.json"
+		},
+		"childNodes": {
+			"anyOf": [
+				{"$ref":"/AnyElement"},
+				{"$ref":"/StyleElement"},
+				{
+					"type":"array"
+				}
+			]
+		}
+	},
+	"additionalProperties": {
+		"type":"string"
+	}
+*/
+{
+	"title":"StyleElement",
+	"type":"object"
+}
+
+/**
+An 'AnyElement' has only one property an object.
+If the object has a 'style' property, its value must be $CSSRuleValuePairs.
+If the object has a 'childnodes' property, its value must be $AnyElement or [$AnyElement]
+
+That object may have any number of additionalProperties, whose values must be strings.
+
+The property name will be converted to the HTMLElement's TagName,
+the style property will be correctly transformed into CSS syntax,
+childnodes will be recursively validated and converted to innerHTML,
+following textContent, if any.
+additionalProperties will be converted to HTML attributes.
+
+A <style> tag is handled differently, as its properties must be converted to CSS syntax.
+
+It can have any number of properties, but each one must either be a CSSSelectorSet, 
+or if the property starts with '@', its own properties must be a CSSSelectorSet.
+
+A CSSSelectorSet can have any number of properties, each of which must be a string.
+
+
+CSSRuleValuePairs
+{}
+CSSSelectorSet
+
+CSSRuleValuePair
+CSSAtRule
+	Can also be a string.... TODO
+
+StyleElement
+AnyElement
+
+**/

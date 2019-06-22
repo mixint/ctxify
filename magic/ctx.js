@@ -1,4 +1,5 @@
 const path = require('path')
+const ctxify = require('../ctxify.js')
 
 Object.prototype.dotAccess = function(dotpath){
 	let localctx = Object.assign({}, this) // create copy of ctx
@@ -23,7 +24,7 @@ module.exports.ctx = function _ctx(magicArg, nextView, data){
 	//then returning the result of ctxifying the target with this new data
 	let modifiedData = Object.assign({}, newData, data)
 
-	return ctxify(target, modifiedData)
+	return ctxify(nextView, modifiedData)
 }
 
 module.exports.split = function _split(magicArg, nextView, data){
@@ -56,14 +57,14 @@ module.exports.write = function _write(magicArg, options, data){
 	return data.dotAccess(magicArg)
 }
 
-module.exports.require = function _require(magicArg, options, data, ctxify){
+module.exports.require = (magicArg, options, data) => {
 	// arg is the name of the file
 	// target is the options object in this case
 	// {"#!require ./somecomponent":{}}
 	// maybe these attributes get merged with the top level... could be useful...
 	let pathName = path.join(process.cwd(), magicArg)
-	console.log("pathname", pathName)
-
+	// ought to decide what happens to overwrite childNodes
+	// doing an Object.assign right now, maybe do a deepmerge instead.
 	let newTarget = require(pathName)
 	//Object.assign(newTarget, target)
 

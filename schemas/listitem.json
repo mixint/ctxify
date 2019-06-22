@@ -1,0 +1,29 @@
+{
+  "$id": "listitem.json",
+  	"definitions": {
+		"list": {
+			"type":"object",
+			"properties": {
+				"li" : {
+					"type": "string"
+				}
+			},
+			"minProperties": 1,
+			"maxProperties": 1,
+			"required": ["li"]
+		},
+		"unorderedlist": {
+			"type": "object",
+			"properties": {
+				"ul": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/list"
+					}
+				}
+			},
+			"minProperties": 1,
+			"maxProperties": 1
+		}
+	}
+}

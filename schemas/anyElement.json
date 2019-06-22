@@ -1,0 +1,64 @@
+{
+	"$id":"anyElement.json",
+	"definitions": {
+		"CSSRuleValuePairs": {
+			"type":"object",
+			"additionalProperties": {
+				"type": "string"
+			}
+		},
+		"CSSSelectorSet":{
+			"type":"object",
+			"additionalProperties": {
+				"$ref":"#/definitions/CSSRuleValuePairs"	
+			}
+		},
+		"CSSAtRule":{
+			"type":"object",
+			"additionalProperties": {
+				"$ref":"#/definitions/CSSRuleValuePairs"	
+			}
+		},
+		"StyleElement": {
+			"minProperties": 1,
+			"maxProperties": 1,
+			"required": ["style"],
+			"properties": {
+				"style": {
+					"$ref":"#/definitions/CSSSelectorSet"
+				}
+			}
+		},
+		"AnyElement": {
+			"type":"object",
+			"not": {
+				"$ref":"#/definitions/StyleElement"
+			},
+			"minProperties": 1,
+			"maxProperties": 1,
+			"patternProperties": {
+				"^[A-Za-z0-9_]+": {
+					"type": "object",
+					"properties": {
+						"style": {
+							"$ref":"#/definitions/CSSRuleValuePairs"
+						},
+						"childNodes": {
+							"type":"array",
+							"items": {
+								"anyOf": [{
+									"$ref":"#/definitions/AnyElement"
+								},{
+									"$ref":"#/definitions/StyleElement"
+								}]
+							}
+						}
+					},
+					"additionalProperties": {
+						"type":"string"
+					}
+				}
+			}
+		}
+	}
+}

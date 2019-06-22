@@ -1,4 +1,3 @@
-const magicWords = require('./magic/ctx.js')
 
 function realType(anyInput){
 	return Object.prototype.toString.call(anyInput).slice(8, -1)
@@ -7,25 +6,24 @@ function isMagic(stringInput){
 	return stringInput[0] == '#' && stringInput[1] == '!'
 }
 
-module.exports.ctxify = function ctxify(view, data){
+
+function ctxify(view, data){
 	// upgrade strings to labeled objects with empty attributes - doesn't mean it will resolved to SLO, each magic word decides what it resolves to.
 	if(realType(view) == 'String'){
 		view = {[view]:{}}
 	}
 	// check if string or object...
-	let space = ' ' // literally just a space
-	let [label, options] = Object.entries(view).pop()
-	// options is either:
+	let [label, props] = Object.entries(view).pop()
+	// props is either:
 	// - empty
-	// - options for a magic word
+	// - props for a magic word
 	// - the 'nextView' a magicWord is expected to process
 	// - the name=attribute values for an HTML element (as a labeled object)
 
 
 	if(isMagic(label)){
-		let spaceIndex = label.indexOf(space)
-		// label is special, of the form
-		// '#!magicWord argument' ... if there is no space ?
+		let spaceIndex = label.indexOf(' ')
+
 		if(spaceIndex < 0){
 			throw new Error("Found a malformed special label: Must contain a magic word followed by an argument separated by a space")
 		}
@@ -35,27 +33,36 @@ module.exports.ctxify = function ctxify(view, data){
 
 		let magicWord = label.slice(2, spaceIndex);
 		let magicArg  = label.slice(spaceIndex + 1);
-		let magicFunction = magicWords[magicWord] // this is cached, doesn't read from disk every time
-		// target from above...		
-		return magicFunction(magicArg, options, data, ctxify)
+		let magicFunction = require('./magic/ctx.js')[magicWord] 
+		return magicFunction(magicArg, props, data)
 
 	} else {
+		// really you could just ctxify the whole graph recursively
+		// but to save call stack space we'll skip anything thats not a child or magic.
+		// this means magic inside of style objects won't be reached?
+		// go over the allowed structure and decide where ctxify should be called
+		// if ctxify can take an array and return an array, there's no need to check type in childNodes
+
 		//labeled object, leave label intact, check each attribute
-		for(var attribute in options){
-			if(attribute == 'childNodes' || attribute == 'children'){
-				switch(realType(options[attribute])){
+		for(var propName in props){ // props[propName] yields propValue
+			if(propName == 'childNodes' || propName == 'children'){
+				switch(realType(props[propName])){
 					case 'Object':
-						options[attribute] = ctxify(options[attribute]); break;
+						props[propName] = ctxify(props[propName]); break;
 					case 'Array':
-						options[attribute] = options[attribute].map(e => ctxify(e, data))
+						props[propName] = props[propName].map(e => ctxify(e, data))
 				}
 			}
-			if(isMagic(options[attribute])){
-				// overwrite attribute with resolved 
-				options[attribute] = ctxify(options[attribute], data)
+			if(propName == 'style'){
+				// check each attribute, maybe break this function out to call on each attr
+			}
+			if(isMagic(props[propName])){
+				// overwrite propName with resolved 
+				props[propName] = ctxify(props[propName], data)
 			}
 		}
-		return {[label]: options}
+		console.log({[label]: props})
+		return {[label]: props}
 	}
 }
 
@@ -67,6 +74,8 @@ module.exports.ctxify = function ctxify(view, data){
  * These values ARE compatible with {{ }} templating
  */
 function formatStyleRules(style, seperator = ' '){
+	// should throw an error if style is not a simple
+	// string:string schema...
 	return Object.entries(style).map(tuple =>
 		`${tuple[0]}: ${tuple[1]};`
 	).join(seperator)
@@ -78,12 +87,12 @@ function formatStyleRules(style, seperator = ' '){
  * the leading space is intentional by the way,
  * so space only exists in <tagName> before each attribute
  */
-function formatAttribute(prop, attribute){
-	return ` ${prop}="${attribute}"`
+function formatAttribute(attrName, attrValue){
+	return ` ${attrName}="${attrValue}"`
 }
 
-module.exports.render = function renderHTML(graph){
- 	var [element, props] = Object.entries(graph).pop()
+Object.prototype.toHTML = function(){
+ 	var [element, props] = Object.entries(this).pop()
 	var outerHTML = new Array
 	var innerHTML = new Array
 
@@ -107,7 +116,7 @@ module.exports.render = function renderHTML(graph){
  				outerHTML.push(formatAttribute('style', formatStyleRules(attribute)))
  				break
  			case 'childNodes':
- 				innerHTML.push(...attribute.map(child => renderHTML(child)))
+ 				innerHTML.push(...attribute.map(child => child.toHTML()))
  				break
  			default:
  				outerHTML.push(formatAttribute(prop, attribute))
@@ -126,3 +135,6 @@ module.exports.render = function renderHTML(graph){
 // 	case 'String':
 // 	default: throw new TypeError("ctxify can only handle Arrays, Objects, and Strings")
 // }
+
+
+module.exports = ctxify
