@@ -36,6 +36,7 @@ class ctxify extends transflect {
     // I've been thinking that content-length and hash could be returned.
     // This would be useful to copy the File API used in npm formidable
     async _end(done){
+        this.write
         // a series of wait... wait.... wait...
         // send version and module info + preview of page,
         // when preview graph is resolved, send that one too,
@@ -44,44 +45,5 @@ class ctxify extends transflect {
         // or simple send a meta tag refresh
 
         done(null, ctxify(this.view, this.data))
-    }
-
-    documentWriteHead(){
-
-    }
-
-    documentWrite(labeledObject){
-        var [element, props] = Object.entries(labeledObject).pop()
-        var outerHTML = new Array
-        var innerHTML = new Array
-
-        if(element == '!')
-            return `<!-- ${props} -->\n`
-
-        for(var prop in props){
-            if(props.hasOwnProperty(prop) == false){
-                continue
-            }
-            var attribute = props[prop]
-            if(element.toLowerCase() == 'style'){
-                    // this is building the inner text of a style tag, 
-                    // with a css rule match expected as a key and a rule as an object with rule/value pairs.
-                    innerHTML.push(`\n${prop} {${formatStyleRules(attribute)}}\n`)
-            } else switch(prop.toLowerCase()){
-                case 'textcontent':
-                    innerHTML.push(attribute)
-                    break
-                case 'style':
-                    outerHTML.push(formatAttribute('style', formatStyleRules(attribute)))
-                    break
-                case 'childnodes':
-                    innerHTML.push(...attribute.map(child => this.documentWrite(child)))
-                    break
-                default:
-                    outerHTML.push(formatAttribute(prop, attribute))
-            }
-        }
-        return `<${element}${outerHTML.join(' ')}>${innerHTML.join('')}</${element}>`
-    }
     }
 }

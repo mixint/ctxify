@@ -9,17 +9,22 @@
 		},
 		"CSSSelectorSet":{
 			"type":"object",
+			"description":"",
 			"additionalProperties": {
 				"$ref":"#/definitions/CSSRuleValuePairs"	
 			}
 		},
 		"CSSAtRule":{
 			"type":"object",
+			"minProperties": 1,
+			"maxProperties": 1,
+			"description":"not implemented, if @ is first char of a CSSSelector, do this instead",
 			"additionalProperties": {
-				"$ref":"#/definitions/CSSRuleValuePairs"	
+				"$ref":"#/definitions/CSSSelectorSet"	
 			}
 		},
 		"StyleElement": {
+			"type":"object",
 			"minProperties": 1,
 			"maxProperties": 1,
 			"required": ["style"],
@@ -29,6 +34,13 @@
 				}
 			}
 		},
+		"HTMLAttributeValue": {
+			"type":"string"
+		},
+		"HTMLAttributeName":{
+			"type":"string",
+			"description": "Attribute names have the same restrictions as HTMLTags, start with letter, _, :, then any word character including unicode propably"
+		},
 		"AnyElement": {
 			"type":"object",
 			"not": {
@@ -36,27 +48,38 @@
 			},
 			"minProperties": 1,
 			"maxProperties": 1,
+			"description":"patternProperties should match the tagName rules",
 			"patternProperties": {
 				"^[A-Za-z0-9_]+": {
-					"type": "object",
-					"properties": {
-						"style": {
-							"$ref":"#/definitions/CSSRuleValuePairs"
-						},
-						"childNodes": {
-							"type":"array",
-							"items": {
-								"anyOf": [{
-									"$ref":"#/definitions/AnyElement"
-								},{
-									"$ref":"#/definitions/StyleElement"
-								}]
+					"oneOf":[{
+						"type":"string",
+						"description":"Strings will be rendered as a text node inside this element",
+					},{
+						"type":"array",
+						"description": "Arrays can be mixtures of textNodes and childNodes, and are appended when rendered",
+						"contains": [{"type":"string"},{"type":"object"}]
+					},{
+						"type": "object",
+						"properties": {
+							"style": {
+								"$ref":"#/definitions/CSSRuleValuePairs"
+							},
+							"childNodes": {
+								"type":"array",
+								"contains": {
+									"anyOf": [{
+										"$ref":"#/definitions/AnyElement"
+									},{
+										"$ref":"#/definitions/StyleElement"
+									}]
+								}
 							}
+						},
+						"additionalProperties": {
+							"$ref":"#/definitions/HTMLAttributeValue"
 						}
-					},
-					"additionalProperties": {
-						"type":"string"
-					}
+					}]
+
 				}
 			}
 		}

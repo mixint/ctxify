@@ -1,4 +1,5 @@
 const Ajv = require('ajv')
+const {ctxify, render} = require('../ctxify')
 
 let ajv = new Ajv({
 	allErrors: true,
@@ -47,3 +48,50 @@ console.log(ajv.validate(
 ))
 
 console.log(ajv.errors)
+
+let test = {
+		"my-div":{
+			"style":{
+				"border":"none",
+				"box-sizing":"border-box"
+			},
+			"id":"somethingElse",
+			"childNodes": [
+				{"style":{
+					"li.selected": {
+						"border-color":"red",
+						"border-style":"dotted",
+						"border-width":3
+					}
+				}},
+				{"ul":{
+					"class":"someList",
+					"style": {
+						"list-decoration":"none",
+					},
+					"childNodes": [
+						{"li": {
+							"textContent": "one"
+						}},
+						{"li": {
+							"class":"selected",
+							"textContent": "two"
+						}},
+						{"li": {
+							"textContent": "three"
+						}}
+					]
+				}}
+			]
+		}
+	}
+
+console.log(ajv.validate(
+	"anyElement.json#/definitions/AnyElement", test
+))
+
+console.log(ajv.errors)
+
+console.log(ctxify(test))
+console.log('\n', render(ctxify(test)), '\n')
+

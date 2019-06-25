@@ -1,69 +1,199 @@
+/**
+childNodes || globject
+		|_ AnyElement
+			|_ case: childNodes: AnyElement || StyleElement
+			|_ case: style: cssRuleValuePairs
+			|_ default: HTMLAttribute
+				|_ value
+		|_ StyleElement
+			|_ cssSelectorSet
+				|_ cssRuleValuePairs
+					|_ value
+			|_ cssAtRule
+				|_ cssSelectorSet
+					|_ cssRuleValuePairs
+						|_ value
 
-function realType(anyInput){
-	return Object.prototype.toString.call(anyInput).slice(8, -1)
-}
-function isMagic(stringInput){
-	return stringInput[0] == '#' && stringInput[1] == '!'
-}
+<AnyElement> an element of childNodes or top level globject -- every other tagName besides 'STYLE', which must handle CSS Syntax instead
+<StyleElement> an element of childNodes or top level globject -- members are <CSSSelectorSet>s or <CSSAtRule>s
+<CSSAtRule> Member of a StyleElement, has CSSSelectorSets as members
+<CSSSelectorSet> every member of a SyleElement is a CSSSelectorSet{props: CSSRuleValuePair} or CSSAtRule{props: CSSSelectorSet}
+<CSSRuleValuePair> member of a CSSSelectorSet or the 'style' attribute of <AnyElement>. Has Strings or MagicValues for memebers.
+<Value> is used for CSSValues or HTML Attribute Values, just a string that can be self-replacing magic
+**/
 
-
-function ctxify(view, data){
-	// upgrade strings to labeled objects with empty attributes - doesn't mean it will resolved to SLO, each magic word decides what it resolves to.
-	if(realType(view) == 'String'){
-		view = {[view]:{}}
+function ctxify(globject, ctx){
+	switch(realType(globject)){
+		case 'Array':  return ctxifyArray(globject, ctx)
+		case 'String': return ctxifyValue(globject, ctx)
+		case 'Object': return ctxifyAnyElement(globject, ctx)
 	}
-	// check if string or object...
-	let [label, props] = Object.entries(view).pop()
+}
+
+function ctxifyArray(globjects, ctx){
+	return globjects.map(globject => ctxify(globject, ctx))
+}
+
+function ctxifyValue(attributeValue, ctx){
+	if(isMagic(attributeValue)){
+		let [magicWord, magicArg] = parseMagic(attributeValue)
+		return require(magicWord)(magicArg, null, ctx)
+	} else {
+		return attributeValue
+	}
+}
+
+// ctxifyAnyElement
+// ctxifyStyleElement
+// ctxifyCSSAtRule
+// ctxifyCSSSelectorSet
+// ctxifyCSSRuleValuePairs
+// ctxifyValue 
+
+function ctxifyAnyElement(globject, ctx){
+	let [label, props] = Object.entries(globject).pop()
 	// props is either:
 	// - empty
 	// - props for a magic word
 	// - the 'nextView' a magicWord is expected to process
 	// - the name=attribute values for an HTML element (as a labeled object)
-
-
 	if(isMagic(label)){
-		let spaceIndex = label.indexOf(' ')
 
-		if(spaceIndex < 0){
-			throw new Error("Found a malformed special label: Must contain a magic word followed by an argument separated by a space")
-		}
-		if(spaceIndex == 2){
-			throw new Error("Found a malformed special label, cannot have a space after the magic marker '#!', must have magic word.")
-		}
-
-		let magicWord = label.slice(2, spaceIndex);
-		let magicArg  = label.slice(spaceIndex + 1);
+		//assertSchema('magicLabel', label)
+		let [magicWord, magicArg] = parseMagic(attributeValue)
 		let magicFunction = require('./magic/ctx.js')[magicWord] 
-		return magicFunction(magicArg, props, data)
-
+		return require(magicWord)(magicArg, props, ctx)
+	} else if(label == 'style'){
+		// assertSchema('StyleElement')
+		return {'style': ctxifyCSSSelectorSet(props, ctx)}
 	} else {
-		// really you could just ctxify the whole graph recursively
-		// but to save call stack space we'll skip anything thats not a child or magic.
-		// this means magic inside of style objects won't be reached?
-		// go over the allowed structure and decide where ctxify should be called
-		// if ctxify can take an array and return an array, there's no need to check type in childNodes
+		//assertSchema('AnyElement')
+		let propName, propValue
+		for(propName in props){
+			propValue = props[propName]
 
-		//labeled object, leave label intact, check each attribute
-		for(var propName in props){ // props[propName] yields propValue
-			if(propName == 'childNodes' || propName == 'children'){
-				switch(realType(props[propName])){
-					case 'Object':
-						props[propName] = ctxify(props[propName]); break;
-					case 'Array':
-						props[propName] = props[propName].map(e => ctxify(e, data))
-				}
-			}
-			if(propName == 'style'){
-				// check each attribute, maybe break this function out to call on each attr
-			}
-			if(isMagic(props[propName])){
-				// overwrite propName with resolved 
-				props[propName] = ctxify(props[propName], data)
+			if(propName == 'childNodes'){
+				props[propName] = ctxifyArray(propValue, ctx)
+			} else if(propName == 'style'){
+				props[propName] = ctxifyCSSRuleValuePairs(propValue)
+			} else if(realType(propValue) == 'String' && isMagic(propValue)){
+				props[propName] = ctxifyValue(propValue, ctx)
 			}
 		}
-		console.log({[label]: props})
 		return {[label]: props}
 	}
+}
+
+function ctxifyCSSAtRule(cssAtRule, ctx){
+
+}
+
+/**
+a cssSelector Set exists as a member of a StyleElement or an At Rule,
+An object (TODO: or an array of objects to concatenate into duplicate keys), 
+must match schema CSSSelectorSet, 
+
+
+**/
+function ctxifyCSSSelectorSet(cssSelectorSet, ctx){
+	let selector, cssRuleValuePairs
+
+	for(selector in cssSelectorSet){
+		cssRuleValuePairs = cssSelectorSet[selector]
+		cssSelectorSet[selector] = ctxifyCSSRuleValuePairs(cssRuleValuePairs)
+	}
+
+	return cssSelectorSet
+}
+
+function ctxifyCSSRuleValuePairs(cssRuleValuePairs, ctx){
+	let ruleName, ruleValue
+	for(ruleName in cssRuleValuePairs){
+		ruleValue = cssRuleValuePairs[ruleName]
+		cssRuleValuePairs[ruleName] = ctxifyValue(ruleValue)
+	}
+}
+
+// renderAnyElement
+// renderStyleElement
+// renderCSSRuleValuePairs
+// renderCSSSelectorSet 
+// renderCSSAtRule 
+// renderHTMLAttribute
+
+
+function renderAnyElement(globject){
+
+	switch(realType(globject)){
+		case 'String': return anyinput; break;
+		case 'Array':  return anyinput.map(renderAnyElement).join('\n'); break;
+		case 'Object': /* assertSchema('AnyElement', globject) */ break;
+		default: throw new TypeError("renderAnyElement expects a String, Array, or Object")
+	}
+
+ 	let [element, attributePairs] = Object.entries(globject).pop()
+
+	var outerHTML = new Array
+	var innerHTML = new Array
+
+	if(element == '!'){
+		return `\n<!-- ${JSON.stringify(attributePairs)} -->\n`
+	}
+
+	if(['String', 'Array'].includes(realType(attributePairs))){
+		innerHTML.push(renderAnyElement(attributePairs))
+		return interpolate(element, null, innerHTML)
+	}
+	if(element == 'style'){
+		innerHTML.push(renderCSSSelectorSet(attributePairs))
+		return interpolate(element, null, innerHTML)
+	}
+
+ 	for(var attributeName in attributePairs){
+ 		if(attributePairs.hasOwnProperty(attributeName) == false){
+ 			continue
+ 		}
+ 		var attributeValue = attributePairs[attributeName]
+
+		switch(attributeName){
+ 			case 'textContent':
+ 				innerHTML.push(attributeValue)
+ 				break
+ 			case 'childNodes':
+ 				innerHTML.push(...attributeValue.map(renderAnyElement))
+ 				break
+ 			case 'style':
+ 				attributeValue = renderCSSRuleValuePairs(attributeValue)
+ 				outerHTML.push(renderHTMLAttribute(attributeName, attributeValue))
+ 				break
+ 			default:
+ 				outerHTML.push(renderHTMLAttribute(attributeName, attributeValue))
+ 		}
+	}
+	return interpolate(element, outerHTML, innerHTML)
+}
+
+function interpolate(elementName, outerHTML, innerHTML){
+	// cant deal with arguments of improper type, will throw error calling join
+	return `<${element}${outerHTML.join(' ')}>${innerHTML.join('')}</${element}>\n`
+}
+
+function renderStyleElement(globject){
+	//assertSchema('StyleElement', globject)
+ 	let [element, cssSelectorSets] = Object.entries(globject).pop()
+
+	let selectorSets = []
+
+	for(cssSelector in cssSelectorSets){
+		if(cssSelectorSet[0] == '@'){
+			cssAtRule = cssSelectorSets[cssSelector]
+			selectorSets.push(`${cssSelector}{${renderCSSAtRule(cssAtRule)}}`)
+		} else {
+			ruleValuePairs = cssSelectorSets[cssSelector]
+			selectorSets.push(`${cssSelector}{${renderCSSRuleValuePairs(ruleValuePairs)}}`)
+		}
+	}
+	return `<style>${selectorSets.join('\n')}</style>\n`
 }
 
 /**
@@ -73,10 +203,9 @@ function ctxify(view, data){
  * and return a string `width: 100px; height: 50px;`
  * These values ARE compatible with {{ }} templating
  */
-function formatStyleRules(style, seperator = ' '){
-	// should throw an error if style is not a simple
-	// string:string schema...
-	return Object.entries(style).map(tuple =>
+function renderCSSRuleValuePairs(RuleValuePairs, seperator = ' '){
+	// assertSchema('CSSRuleValuePairs', RuleValuePairs)
+	return Object.entries(RuleValuePairs).map(tuple =>
 		`${tuple[0]}: ${tuple[1]};`
 	).join(seperator)
 }
@@ -87,54 +216,35 @@ function formatStyleRules(style, seperator = ' '){
  * the leading space is intentional by the way,
  * so space only exists in <tagName> before each attribute
  */
-function formatAttribute(attrName, attrValue){
+function renderHTMLAttribute(attrName, attrValue){
+	// assertSchema(attributeName, attrName)
+	// assertSchema(attributeValue, attrValue)
+	attrValue = attrValue.replace('"', '&quot;')
+	attrValue = attrValue.replace('&', '&amp;')
 	return ` ${attrName}="${attrValue}"`
 }
 
-Object.prototype.toHTML = function(){
- 	var [element, props] = Object.entries(this).pop()
-	var outerHTML = new Array
-	var innerHTML = new Array
+// realType
+// isMagic
+// parseMagic
 
-	if(element == '!')
-		return `<!-- ${props} -->\n`
-
- 	for(var prop in props){
- 		if(props.hasOwnProperty(prop) == false){
- 			continue
- 		}
- 		var attribute = props[prop]
- 		if(element.toUpperCase() == 'STYLE'){
- 				// this is building the inner text of a style tag, 
- 				// with a css rule match expected as a key and a rule as an object with rule/value pairs.
- 				innerHTML.push(`\n${prop} {${formatStyleRules(attribute)}}\n`)
- 		} else switch(prop){
- 			case 'textContent':
- 				innerHTML.push(attribute)
- 				break
- 			case 'style':
- 				outerHTML.push(formatAttribute('style', formatStyleRules(attribute)))
- 				break
- 			case 'childNodes':
- 				innerHTML.push(...attribute.map(child => child.toHTML()))
- 				break
- 			default:
- 				outerHTML.push(formatAttribute(prop, attribute))
- 		}
-	}
-	return `<${element}${outerHTML.join(' ')}>${innerHTML.join('')}</${element}>`
+function realType(anyInput){
+	return Object.prototype.toString.call(anyInput).slice(8, -1)
 }
 
-// function handleString(){}
-// function handleObject(){}
-// function handleArray(){}
+function isMagic(stringInput){
+	//assertSchema({type: 'string'}, stringInput)
+	return stringInput[0] == '#' && stringInput[1] == '!'
+}
 
-// switch(realType(view)){
-// 	case 'Array':
-// 	case 'Object':
-// 	case 'String':
-// 	default: throw new TypeError("ctxify can only handle Arrays, Objects, and Strings")
-// }
+function parseMagic(stringInput){
+	//assertSchema({type: 'string'}, stringInput)
+	let spaceIndex = label.indexOf(' ')
+	let magicWord = label.slice(2, spaceIndex)
+	let magicArg  = label.slice(spaceIndex + 1)
+	return [magicWord, magicArg]
+}
 
-
-module.exports = ctxify
+module.exports = {
+	ctxify, renderAnyElement
+}
