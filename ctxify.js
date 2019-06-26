@@ -43,6 +43,7 @@ function ctxifyValue(attributeValue, ctx){
 	}
 }
 
+
 // ctxifyAnyElement
 // ctxifyStyleElement
 // ctxifyCSSAtRule
@@ -54,18 +55,17 @@ function ctxifyAnyElement(globject, ctx){
 	let [label, props] = Object.entries(globject).pop()
 	// props is either:
 	// - empty
-	// - props for a magic word
-	// - the 'nextView' a magicWord is expected to process
+	// - options for a magic word
+	// - the 'nextglob' a magicWord is expected to process
 	// - the name=attribute values for an HTML element (as a labeled object)
 	if(isMagic(label)){
-
 		//assertSchema('magicLabel', label)
 		let [magicWord, magicArg] = parseMagic(attributeValue)
 		let magicFunction = require('./magic/ctx.js')[magicWord] 
-		return require(magicWord)(magicArg, props, ctx)
+		return require(magicWord)(magicArg, props, ctx) // leaves out the options, magicword will use defaults for merge. 
 	} else if(label == 'style'){
 		// assertSchema('StyleElement')
-		return {'style': ctxifyCSSSelectorSet(props, ctx)}
+		return {[label]: ctxifyCSSSelectorSet(props, ctx)}
 	} else {
 		//assertSchema('AnyElement')
 		let propName, propValue
@@ -75,17 +75,13 @@ function ctxifyAnyElement(globject, ctx){
 			if(propName == 'childNodes'){
 				props[propName] = ctxifyArray(propValue, ctx)
 			} else if(propName == 'style'){
-				props[propName] = ctxifyCSSRuleValuePairs(propValue)
+				props[propName] = ctxifyCSSRuleValuePairs(propValue, ctx)
 			} else if(realType(propValue) == 'String' && isMagic(propValue)){
 				props[propName] = ctxifyValue(propValue, ctx)
 			}
 		}
 		return {[label]: props}
 	}
-}
-
-function ctxifyCSSAtRule(cssAtRule, ctx){
-
 }
 
 /**
@@ -96,13 +92,22 @@ must match schema CSSSelectorSet,
 
 **/
 function ctxifyCSSSelectorSet(cssSelectorSet, ctx){
+	if(Array.isArray(cssSelectorSet)){
+		return cssSelectorSet.map(ctxifyCSSSelectorSet)
+	}
 	let selector, cssRuleValuePairs
 
 	for(selector in cssSelectorSet){
-		cssRuleValuePairs = cssSelectorSet[selector]
-		cssSelectorSet[selector] = ctxifyCSSRuleValuePairs(cssRuleValuePairs)
+		if(selector[0] == '@') {
+			// the selector is an @Rule ! Like @media... 
+			// return a call to the same function, since the value of an @Rule is a selectorset
+			cssAtRuleValue = cssSelectorSet[selector]
+			cssSelectorSet[selector] = ctxifyCSSSelectorSet(cssAtRuleValue, ctx)
+		} else {
+			cssRuleValuePairs = cssSelectorSet[selector]
+			cssSelectorSet[selector] = ctxifyCSSRuleValuePairs(cssRuleValuePairs, ctx)
+		}
 	}
-
 	return cssSelectorSet
 }
 
@@ -110,8 +115,12 @@ function ctxifyCSSRuleValuePairs(cssRuleValuePairs, ctx){
 	let ruleName, ruleValue
 	for(ruleName in cssRuleValuePairs){
 		ruleValue = cssRuleValuePairs[ruleName]
-		cssRuleValuePairs[ruleName] = ctxifyValue(ruleValue)
+		if(isMagic(ruleValue)){
+			cssRuleValuePairs[ruleName] = ctxifyValue(ruleValue)
+		}
+		// else, leave it, no need to overwrite it when there's no magic.
 	}
+	return cssRuleValuePairs
 }
 
 // renderAnyElement
@@ -121,6 +130,7 @@ function ctxifyCSSRuleValuePairs(cssRuleValuePairs, ctx){
 // renderCSSAtRule 
 // renderHTMLAttribute
 
+// this is a bunch of depth first traversal by the way
 
 function renderAnyElement(globject){
 
@@ -175,26 +185,64 @@ function renderAnyElement(globject){
 
 function interpolate(elementName, outerHTML, innerHTML){
 	// cant deal with arguments of improper type, will throw error calling join
-	return `<${element}${outerHTML.join(' ')}>${innerHTML.join('')}</${element}>\n`
+	return `<${elementName}${outerHTML.join(' ')}>${innerHTML.join('')}</${elementName}>\n`
 }
 
 function renderStyleElement(globject){
 	//assertSchema('StyleElement', globject)
- 	let [element, cssSelectorSets] = Object.entries(globject).pop()
+ 	let [element, cssSelectorSet] = Object.entries(globject).pop()
+ 	return interpolate(element, null, renderCSSSelectorSet(cssSelectorSet))
+}
 
-	let selectorSets = []
+/**
+A selector set looks like 
+TODO: array of rules support,
 
-	for(cssSelector in cssSelectorSets){
-		if(cssSelectorSet[0] == '@'){
-			cssAtRule = cssSelectorSets[cssSelector]
-			selectorSets.push(`${cssSelector}{${renderCSSAtRule(cssAtRule)}}`)
+[ {h2: {
+	  font-size: 32pt;
+	  font-weight: normal;
+	}},
+	{h3: {
+		font-size: 24pt;
+		font-family: monospace;
+	}}
+]
+
+or, normally, one name per object.
+
+{
+	h2: {
+	  font-size: 32pt;
+	  font-weight: normal;
+	},
+	h3: {
+		font-size: 24pt;
+		font-family: monospace;
+	}
+}
+
+otherwise, you'll miss out on cascading rules, it will simply omit earlier values in your object.
+
+If you want them to cascade, put them in arrays.
+
+*/
+function renderCSSSelectorSet(cssSelectorSet){
+	if(Array.isArray(cssSelectorSet)){
+		return cssSelectorSet.map(cssSelectorSet).join('\n')
+	}
+	let innerCSS = []
+	for(cssSelector in cssSelectorSet){
+		if(cssSelector[0] == '@'){
+			atRuleValue = cssSelectorSets[cssSelector]
+			innerCSS.push(`${cssSelector} {${renderCSSSelectorSet(atRuleValue)}}`)
 		} else {
 			ruleValuePairs = cssSelectorSets[cssSelector]
-			selectorSets.push(`${cssSelector}{${renderCSSRuleValuePairs(ruleValuePairs)}}`)
+			innerCSS.push(`${cssSelector} {${renderCSSRuleValuePairs(ruleValuePairs)}}`)
 		}
 	}
-	return `<style>${selectorSets.join('\n')}</style>\n`
+	return interpolate('style', null, innerCSS.join(''))
 }
+
 
 /**
  * @param {object} style
@@ -239,9 +287,9 @@ function isMagic(stringInput){
 
 function parseMagic(stringInput){
 	//assertSchema({type: 'string'}, stringInput)
-	let spaceIndex = label.indexOf(' ')
-	let magicWord = label.slice(2, spaceIndex)
-	let magicArg  = label.slice(spaceIndex + 1)
+	let spaceIndex = stringInput.indexOf(' ')
+	let magicWord = stringInput.slice(2, spaceIndex)
+	let magicArg  = stringInput.slice(spaceIndex + 1)
 	return [magicWord, magicArg]
 }
 

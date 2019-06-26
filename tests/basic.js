@@ -1,6 +1,19 @@
-const ctxify = require('../ctxify')
+const {ctxify, renderAnyElement} = require('../ctxify')
 
-console.log(ctxify(
+
+console.log(renderAnyElement(ctxify(
+	{"li":{
+		"textContent":"hello"
+	}},
+	{"url": {
+		"query": {
+			"name": "colten"
+		}
+	}}
+)))
+
+/**
+console.log(renderAnyElement(ctxify(
 	{"li":{
 		"textContent":"#!write url.query.name"
 	}},
@@ -9,9 +22,9 @@ console.log(ctxify(
 			"name": "colten"
 		}
 	}}
-).toHTML())
+)))
 
-console.log(ctxify(
+console.log(renderAnyElement(ctxify(
 	{"body":{
 		"childNodes": [
 			{"span":{"textContent":"Hello "}},
@@ -24,11 +37,9 @@ console.log(ctxify(
 			"name": "Colten"
 		}
 	}}
-).toHTML())
-
-//ctxify().htmlify() // ctxify().toHTML()
-
-console.log(ctxify(
+)))
+**/
+console.log(renderAnyElement(ctxify(
     {"head": {
 		"childNodes": [
 			{"style":{
@@ -43,8 +54,10 @@ console.log(ctxify(
 			"width":"40px",
 			"height":"40px"
 		}
-	}).toHTML())
+	}
+)))
 
+//*
 // TODO properly reach into style tags....
 // right now I'm expected all attribute values to be strings,
 // but in the case of style, I can accept an object
@@ -60,8 +73,8 @@ console.log(ctxify(
 // 			"height":"40px"
 // 		}
 // 	}).toHTML())
-
-console.log(ctxify(
+/*
+console.log(renderAnyElement(ctxify(
 	{"body":{
 		"childNodes": [
 			{"h2":{"textContent":"Can we Require?"}},
@@ -76,7 +89,7 @@ console.log(ctxify(
 			"name": "colten"
 		}
 	}}
-).toHTML())
+)))
 
 output = `
 <body>
@@ -104,4 +117,4 @@ output = `
 // 		}}
 // 	}
 // }
-
+**/
