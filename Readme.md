@@ -1,22 +1,20 @@
 /**
 # CTXIFY
-## Pure Functional Document Templates for Hypermedia
+## Compose HTML with Declarative, Functional Templates
 
+Describe web documents and subdocuments using JSON files using a 'general layout object' schema, a.k.a. `.glo.json` or `globject`.
 
+Either the single label of a `globject` or the value of a property can be prefixed with a magic word using `#!`. 
 
-Describe web documents and subdocuments using JSON files using a 'Special Labeled Object' schema.
-
-Either the single label of a 'labeled object' or the value of a property can be prefixed with a '#!' symbol to indicate special pre-processing.
-
-At its simplest, this can be access to a 'data' object with a dot notation path.
-
-As a transflect stream, the query object can be accessed to interpolate into an html structure.
+At its simplest, this can be access to a 'data' object with a dot notation path. If we passed a glo template and a context with the an url object, it might look like:
 
 /?somePropertyName=someValue
 returned by `#!write url.query.somePropertyName`
 
-Each magic word should have strict usage guidelines as to what it needs and what it returns
+Each magic word must have a schema property that described what it can accept and what it can return.
+
 an upgrade to typescript would be great, of course
+
 `#!write`   DotPath || FilePath ,, [options] -> String
 `#!require` DotPath || FilePath ,, [options] -> Labeled Object
 `#!ctx`     DotPath || FilePath ,, NextGlob  -> Labeled Object
@@ -27,8 +25,8 @@ TODO Schema will have to be smart enough to check the return value of these labe
 
 check if the DotPath resolves to a FilePath
 for write, read that file and interpret it as utf8
-for require, read that file and use it as nextView
-for ctx, read that file and merge it with data
+for require, read that file and use it as nextglob
+for ctx, read that file and merge it with ctx
 
 
 # Magic Words
@@ -79,15 +77,44 @@ If given an object, check for hashbang.
  }}
 ```
 
+extrastat
+takes a filename, and a nextglob to ctxify with a new ctx
+ctx is merged with an extrastat property which points to,
+A stat object that looks like the output of extrastat as is, but with, an array that is the names of children [null if file is not a directory : empty directories still have ['.','..'], 
+
+default options config.json, include
+'parents':'true',
+'siblings':'true',
+'children':'true',
+'realuid':'false',
+'resolve_guid':'false',
+
+
+
+Whether I am acting as a user, group, or other in relation to a file is very pertinent information,
+
+'resolve_role':'true',
+'mime_type':'ture',
+
+but you can set these to false if your doing something different and just want the smallest possible stat object.
+
+your esc always focuses on the immediage frame then outwards, and you can always hit alt to show a bunch of numbers to jump to via focus. One you focus on a different frame, you can 'enter' back into the menu or focusing within, maybe tab to step into, shifttab to step out. 
+
+If a component crashes in error, write html to say so, if its iframed it will be an impressive localized crash, with helpful version information in the case it was a regression, you could spin up a different version as quick as a 'git checkout' and 'npm start', 
+
+I think handling these different transflect classes for each route, actually starting them at different 'npm start' child processes, and getting the port number from all those routes, and each class gets to have its own jsonf connection log, which you can easily merge and see how connections come in cascades and see what really slows you down, what routes / properties end up taking way too long.
+
+having a timestamped log of transactions is the highest resolution tracking you could want, no clientside javascript necessary, just cold hard timers between form submissions.
+
+
+
 ```json
 {"#!sql ./somequery":
 	{"#!switch sql.success": {
 		"/true/i": {"div":{ 
 			"class": "sql-success",
 			"childNodes": {"#!each sql.results":
-				{"li": {
-					"textContent": "#!write each.content"
-				}}
+				{"li":  "#!write each.content"}
 			}
 		}},
 		"default": {"div": {

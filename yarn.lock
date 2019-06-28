@@ -2,14 +2,17 @@
 # yarn lockfile v1
 
 
-"@mixint/transflect@^0.8.3":
-  version "0.8.3"
-  resolved "https://registry.yarnpkg.com/@mixint/transflect/-/transflect-0.8.3.tgz#132aa606355ace8baa148ae29b39f2a070dab976"
-  integrity sha512-x3Ct+iyJHdTLCeEGG+8SD5jjRVMXj6C7cGAqxQUSj+mVRXdZD9fbkWjrAbVBQINBxg61mBDqEDSiF0fXF/nObw==
+"@ctxify/dotaccess@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@ctxify/dotaccess/-/dotaccess-1.0.0.tgz#ba8031fe502a97c231b83198db156c51f6a553d5"
+  integrity sha512-gZHSRb9jMRw+yfqjfqrCl+IVglUL4UkmyQ+bE7hr1SjC7u4n9aKMA/PV5ZaZxVc0Kz3AwC+i1HZUOBQsBmX0YA==
+
+"@ctxify/write@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@ctxify/write/-/write-1.0.0.tgz#d4ec2da0e2606916e32704373f47cd8e123dc926"
+  integrity sha512-ir+C4AL/hNROrTdE3W7vCu/X8ej7jAB8LiFhbxVvDyAdNVWA0caidDrXe5iPb7NxTibhsQExzbJ3iNF3BM+lZA==
   dependencies:
-    parsedmessage "3.1.0"
-    serverfailsoft "2.1.1"
-    streamverbose "0.2.1"
+    "@ctxify/dotaccess" "^1.0.0"
 
 ajv@^6.10.0:
   version "6.10.0"
@@ -36,30 +39,10 @@ json-schema-traverse@^0.4.1:
   resolved "https://registry.yarnpkg.com/json-schema-traverse/-/json-schema-traverse-0.4.1.tgz#69f6a87d9513ab8bb8fe63bdb0979c448e684660"
   integrity sha512-xbbCH5dCYU5T8LcEhhuh7HJ88HXuW3qsI3Y0zOZFKfZEHcpWiHU/Jxzk629Brsab/mMiHQti9wMP+845RPe3Vg==
 
-moment@^2.24.0:
-  version "2.24.0"
-  resolved "https://registry.yarnpkg.com/moment/-/moment-2.24.0.tgz#0d055d53f5052aa653c9f6eb68bb5d12bf5c2b5b"
-  integrity sha512-bV7f+6l2QigeBBZSM/6yTNq4P2fNpSWj/0e7jQcy87A8e7o2nAfP/34/2ky5Vw4B9S446EtIhodAzkFCcR4dQg==
-
-parsedmessage@3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/parsedmessage/-/parsedmessage-3.1.0.tgz#9357449cad5099d85455ecf1d336d0193816ef85"
-  integrity sha512-LRWoIhPUh+6myo9loWM9arfKeg/5KjjSbjK0RNwXL/ktu36AIR+NaNn37Zvo5ehzYunL2nd0y9XHmTb1RRBv+Q==
-
 punycode@^2.1.0:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.1.1.tgz#b58b010ac40c22c5657616c8d2c2c02c7bf479ec"
   integrity sha512-XRsRjdf+j5ml+y/6GKHPZbrF/8p2Yga0JPtdqTIY2Xe5ohJPD9saDJJLPvp9+NSBprVvevdXZybnj2cv8OEd0A==
-
-serverfailsoft@2.1.1:
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/serverfailsoft/-/serverfailsoft-2.1.1.tgz#0d1471b3aabde582249597a328d2f2b4687accda"
-  integrity sha512-HIt3LDYmyt5ZHUtcyvDmNnNfV5XYOEw4qvsVji1x3ltLwOaKMVGFzybURGUXO5+FNqOn/5sZS2lSBKphisBD+g==
-
-streamverbose@0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/streamverbose/-/streamverbose-0.2.1.tgz#4e5ad08b24583ce5c863bb24c31cb8d162942d86"
-  integrity sha512-3S33voWb2t46hy0qxdShft9tCIvjMwiu82HqLOVwHpmpOHIe3pUFL1DJU4rg7Xk7OwWC0ZQSH158tNCg9quydw==
 
 uri-js@^4.2.2:
   version "4.2.2"
