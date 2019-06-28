@@ -1,6 +1,6 @@
 {
   "name": "@ctxify/ctxify",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Functional Document Templates for Hypermedia",
   "main": "ctxify.js",
   "author": "Colten Jackson <jazzyjackson@gmail.com>",
@@ -10,7 +10,7 @@
     "ajv": "^6.10.0"
   },
   "config": {
-  	"write":"@ctxify/write",
-  	""     :"@ctxify/error"
+    "write": "@ctxify/write",
+    "": "@ctxify/error"
   }
 }
