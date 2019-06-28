@@ -6,7 +6,7 @@ const {
 } = require('../ctxify')
 const {
  	renderAnyElement
-} = require('../bin/render')
+} = require('bin/render')
 
 let ruleValuePairs = {
 	"border":"none",

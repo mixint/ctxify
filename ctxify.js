@@ -21,14 +21,6 @@ childNodes || globject
 <CSSRuleValuePair> member of a CSSSelectorSet or the 'style' attribute of <AnyElement>. Has Strings or MagicValues for memebers.
 <Value> is used for CSSValues or HTML Attribute Values, just a string that can be self-replacing magic
 **/
-const path = require('path')
-const {
-	rollupPairs,
-	rollupObjects,
-	realType,
-	isMagic,
-	parseMagic
-} = require(__dirname + '/bin/util.js')
 const {
 	ctxify,
 	ctxifyArray,
@@ -37,14 +29,14 @@ const {
 	ctxifyStyleElement,
 	ctxifyCSSSelectorSet,
 	ctxifyCSSRuleValuePairs
-} = require(__dirname + '/bin/ctxify.js')
+} = require('bin/ctxify.js')
 const {
 	renderAnyElement,
 	renderStyleElement,
 	renderCSSSelectorSet,
 	renderCSSRuleValuePairs,
 	renderHTMLAttribute
-} = require(__dirname + '/bin/render.js')
+} = require('bin/render.js')
 
 module.exports = {
 	ctxify,
