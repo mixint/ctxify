@@ -1,6 +1,6 @@
 {
   "name": "@ctxify/ctxify",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Compose HTML with Declarative, Functional Templates",
   "main": "ctxify.js",
   "author": "Colten Jackson <jazzyjackson@gmail.com>",
