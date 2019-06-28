@@ -53,7 +53,7 @@ let test = {
 				},
 				"childNodes": [
 					{"li": {"textContent": "#!write width"}},
-					{"li": {"textContent": "#!write width"}},
+					{"li": {"textContent": {"#!moment date": {"format":'LLLL',"locale": "zh-cn"}}}},
 					{"li": {
 						"class":"selected",
 						"textContent": "two"
@@ -68,7 +68,7 @@ let test = {
 }
 
 
-ctxify(test, {width: "3px"}).then(glob => {
+ctxify(test, {width: "3px", date: new Date()}).then(glob => {
 	console.log(glob)
 	console.log(renderAnyElement(glob))
 }).catch(console.log)

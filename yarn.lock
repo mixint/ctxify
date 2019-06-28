@@ -7,6 +7,14 @@
   resolved "https://registry.yarnpkg.com/@ctxify/dotaccess/-/dotaccess-1.0.0.tgz#ba8031fe502a97c231b83198db156c51f6a553d5"
   integrity sha512-gZHSRb9jMRw+yfqjfqrCl+IVglUL4UkmyQ+bE7hr1SjC7u4n9aKMA/PV5ZaZxVc0Kz3AwC+i1HZUOBQsBmX0YA==
 
+"@ctxify/moment@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@ctxify/moment/-/moment-1.0.0.tgz#16449c2ef7cb4023bed4df1291d9d5e7207ae12c"
+  integrity sha512-sFSCoZJOYlkZzrf4uOYQNkcOsbMOODA9MtTKp6obx57+bEZk2j1ABqyU4WBKsZkJQVAp5AmKU+AAK6OzYH0jtw==
+  dependencies:
+    "@ctxify/dotaccess" "^1.0.0"
+    moment "^2.24.0"
+
 "@ctxify/write@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@ctxify/write/-/write-1.0.0.tgz#d4ec2da0e2606916e32704373f47cd8e123dc926"
@@ -38,6 +46,11 @@ json-schema-traverse@^0.4.1:
   version "0.4.1"
   resolved "https://registry.yarnpkg.com/json-schema-traverse/-/json-schema-traverse-0.4.1.tgz#69f6a87d9513ab8bb8fe63bdb0979c448e684660"
   integrity sha512-xbbCH5dCYU5T8LcEhhuh7HJ88HXuW3qsI3Y0zOZFKfZEHcpWiHU/Jxzk629Brsab/mMiHQti9wMP+845RPe3Vg==
+
+moment@^2.24.0:
+  version "2.24.0"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.24.0.tgz#0d055d53f5052aa653c9f6eb68bb5d12bf5c2b5b"
+  integrity sha512-bV7f+6l2QigeBBZSM/6yTNq4P2fNpSWj/0e7jQcy87A8e7o2nAfP/34/2ky5Vw4B9S446EtIhodAzkFCcR4dQg==
 
 punycode@^2.1.0:
   version "2.1.1"

@@ -64,7 +64,7 @@ async function ctxifyAnyElement(globject, ctx){
 
 	if(isMagic(label)){
 		//assertSchema('magicLabel', label)
-		let [magicWord, magicArg] = parseMagic(attributeValue)
+		let [magicWord, magicArg] = parseMagic(label)
 		return require(config[magicWord])(magicArg, props, ctx) // leaves out the options, magicword will use defaults for merge. 
 	} else if(label == 'style'){
 		return ctxifyStyleElement(globject, ctx)
@@ -78,6 +78,8 @@ async function ctxifyAnyElement(globject, ctx){
 					return {[propName]: await ctxifyCSSRuleValuePairs(propValue, ctx)}
 				} else if(realType(propValue) == 'String' && isMagic(propValue)){
 					return {[propName]: await ctxifyValue(propValue, ctx)}
+				} else if(realType(propValue) == 'Object'){
+					return {[propName]: await ctxifyAnyElement(propValue, ctx)}
 				} else {
 					return {[propName]: propValue}
 				}
@@ -135,7 +137,9 @@ async function ctxifyCSSRuleValuePairs(cssRuleValuePairs, ctx){
 	return Promise.all(
 		Object.entries(cssRuleValuePairs)
 			.map(async ([rule, value]) => {
-				if(isMagic(value)){
+				if(realType(value) == 'Object'){
+					return {[rule]: await ctxifyValue(value, ctx)}
+				}else if(isMagic(value)){
 					return {[rule]: await ctxifyValue(value, ctx)}
 				} else {
 					return {[rule]: value}

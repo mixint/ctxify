@@ -1,16 +1,17 @@
 {
   "name": "@ctxify/ctxify",
   "version": "0.2.0",
-  "description": "Functional Document Templates for Hypermedia",
+  "description": "Compose HTML with Declarative, Functional Templates",
   "main": "ctxify.js",
   "author": "Colten Jackson <jazzyjackson@gmail.com>",
   "license": "BSD-3-Clause",
   "dependencies": {
+    "@ctxify/moment": "^1.0.0",
     "@ctxify/write": "^1.0.0",
     "ajv": "^6.10.0"
   },
   "config": {
     "write": "@ctxify/write",
-    "": "@ctxify/error"
+    "moment": "@ctxify/moment"
   }
 }
