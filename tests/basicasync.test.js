@@ -43,7 +43,10 @@ let test = {
 				"li.selected": {
 					"border-color":"red",
 					"border-style":"dotted",
-					"border-width":"#!write width"
+					"border-width": ["#!write width","px"]
+				},
+				"li:not(.selected)": {
+					"color": "gray"
 				}
 			}},
 			{"ul":{
@@ -68,7 +71,7 @@ let test = {
 }
 
 
-ctxify(test, {width: "3px", date: new Date()}).then(glob => {
+ctxify(test, {width: "3", date: new Date()}).then(glob => {
 	console.log(glob)
 	console.log(renderAnyElement(glob))
 }).catch(console.log)
@@ -106,3 +109,6 @@ ctxify(test, {width: "3px", date: new Date()}).then(glob => {
 			}
 		}
   **/
+
+ctxify(["hello ",{"img": {"src": "/img/world"}}," world"]).then(ctx => renderAnyElement(ctx)).then(console.log)
+ctxify(["hello ",{"a": {"href": "/img/world", "textContent":"clicky"}}," world"]).then(ctx => renderAnyElement(ctx)).then(console.log)
