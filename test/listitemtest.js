@@ -1,3 +1,4 @@
+/**
 const Ajv = require('ajv')
 const {ctxify, render} = require('../ctxify')
 
@@ -94,4 +95,4 @@ console.log(ajv.errors)
 
 console.log(ctxify(test))
 console.log('\n', render(ctxify(test)), '\n')
-
+**/

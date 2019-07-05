@@ -3,15 +3,22 @@
   "version": "0.3.2",
   "description": "Compose HTML with Declarative, Functional Templates",
   "main": "ctxify.js",
+  "scripts": {
+    "test":"mocha"
+  },
   "author": "Colten Jackson <jazzyjackson@gmail.com>",
   "license": "BSD-3-Clause",
   "dependencies": {
-    "@ctxify/moment": "^1.0.0",
-    "@ctxify/write": "^1.0.0",
-    "ajv": "^6.10.0"
+    "@ctxify/moment": "1.1.0",
+    "@ctxify/write": "1.0.0",
+    "ajv": "6.10.0"
   },
   "config": {
     "write": "@ctxify/write",
     "moment": "@ctxify/moment"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^6.1.4"
   }
 }

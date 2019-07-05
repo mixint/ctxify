@@ -6,7 +6,7 @@ Describe web documents and subdocuments using JSON files using a 'general layout
 
 Either the single label of a `globject` or the value of a property can be prefixed with a magic word using `#!`. 
 
-At its simplest, this can be access to a 'data' object with a dot notation path. If we passed a glo template and a context with the an url object, it might look like:
+At its simplest, this can be access to a 'data' object with a dot notation path. If we passed a glo template and a context with an url object, it might look like:
 
 /?somePropertyName=someValue
 returned by `#!write url.query.somePropertyName`
@@ -28,6 +28,9 @@ for write, read that file and interpret it as utf8
 for require, read that file and use it as nextglob
 for ctx, read that file and merge it with ctx
 
+GLOM
+General Layout Object Manipulation
+A single syntax for style and markup with in-line replacement of an object's subbranches with the use of magic words. 
 
 # Magic Words
 
@@ -71,7 +74,7 @@ If given an object, check for hashbang.
 										}}
 					}
 				]
-			}}
+			}}i
 		}
 	}}
  }}
@@ -89,16 +92,9 @@ default options config.json, include
 'realuid':'false',
 'resolve_guid':'false',
 
-
-
-Whether I am acting as a user, group, or other in relation to a file is very pertinent information,
-
-'resolve_role':'true',
-'mime_type':'ture',
-
 but you can set these to false if your doing something different and just want the smallest possible stat object.
 
-your esc always focuses on the immediage frame then outwards, and you can always hit alt to show a bunch of numbers to jump to via focus. One you focus on a different frame, you can 'enter' back into the menu or focusing within, maybe tab to step into, shifttab to step out. 
+your esc always focuses on the immediate frame then outwards, and you can always hit alt to show a bunch of numbers to jump to via focus. Once you focus on a different frame, you can 'enter' back into the menu or focusing within, maybe tab to step into, shifttab to step out. 
 
 If a component crashes in error, write html to say so, if its iframed it will be an impressive localized crash, with helpful version information in the case it was a regression, you could spin up a different version as quick as a 'git checkout' and 'npm start', 
 
@@ -111,16 +107,19 @@ having a timestamped log of transactions is the highest resolution tracking you 
 ```json
 {"#!sql ./somequery":
 	{"#!switch sql.success": {
-		"/true/i": {"div":{ 
-			"class": "sql-success",
-			"childNodes": {"#!each sql.results":
-				{"li":  "#!write each.content"}
-			}
-		}},
-		"default": {"div": {
-			"class": "sql-error",
-			"textContent": "#!write sql.errorMsg"
-		}}
+		"true":
+			{"div":{ 
+				"class": "sql-success",
+				"childNodes": 
+					{"#!each sql.results":
+						{"li":  "#!write each.content"}
+					}
+			}},
+		"default":
+			{"div":{
+				"class": "sql-error",
+				"textContent": "#!write sql.errorMsg"
+			}}
 	}}
 }}
 ```

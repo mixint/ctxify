@@ -1,8 +1,0 @@
-{"div":{
-	"id":"hellodiv",
-	"childNodes": [
-		{"span":{"textContent":"Hello "}},
-		{"span":{"textContent":"#!write url.query.name"}},
-		{"span":{"textContent":"!"}}
-	]
-}}
