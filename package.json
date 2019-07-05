@@ -1,10 +1,10 @@
 {
   "name": "@ctxify/ctxify",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "description": "Compose HTML with Declarative, Functional Templates",
   "main": "ctxify.js",
   "scripts": {
-    "test":"mocha"
+    "test": "mocha"
   },
   "author": "Colten Jackson <jazzyjackson@gmail.com>",
   "license": "BSD-3-Clause",
