@@ -1,11 +1,10 @@
-const {
-	ctxify,
-	ctxifyValue,
-	renderAnyElement
-} = require('../ctxify')
-const {
-	expect
-} = require('chai')
+const   Ctxify   = require('../ctxify')
+const { expect } = require('chai')
+
+let ctxify = new Ctxify({
+    "write": "@ctxify/write",
+    "moment": "@ctxify/moment"
+})
 
 describe('Basic string concatenation', () => {
 	/**
@@ -15,25 +14,27 @@ describe('Basic string concatenation', () => {
 	This is not so useful until you start embedding magic words
 	into this string or array of strings.
 	**/
-	it('Takes a string and returns a text node', () => 
-		ctxify('hello')
-		.then(renderAnyElement)
-		.then(result => {
-			expect(result).to.equal('hello')
-		})
-	)
+	it('Takes a string and returns a text node', function(){
+		let result = ctxify.render(
+			'hello'
+		)
+		expect(result).to.equal(
+			'hello'
+		)
+	})
 
 	/**
 	Bear in mind the strings are joined with no space,
 	so if you want a space you must specifiy where.
 	**/
-	it('Takes an array of strings and returns a text node', () => 
-		ctxify(['hello'," ",'world'])
-		.then(renderAnyElement)
-		.then(result => {
-			expect(result).to.equal('hello world')
-		})
-	)
+	it('Takes an array of strings and returns a text node', function(){
+		let result = ctxify.render(
+			['hello'," ",'world']
+		)
+		expect(result).to.equal(
+			'hello world'
+		)
+	})
 })
 
 /**
@@ -46,42 +47,43 @@ Simplest case, with no arguments, uses defaults defined in
 @ctxify/moment/defaults.json
 
 **/
-describe('An invocation of a magic word to return a text node', () => {
-	it('concatenates the result of the magic word', () => 
-		ctxify(["The date is ","#!moment"])
-		.then(renderAnyElement)
-		.then(result => {
-			expect(result).to.match(
-				/The date is \w+, \w+ \d+, \d+ \d+:\d+ (AM|PM)/
-			)
-		})
-	)
+describe('An invocation of a magic word to return a text node', function(){
+	it('concatenates the result of the magic word', async function(){
+		let intermediate = await ctxify.ctxify(
+			["The date is ","#!moment"]
+		)
 
-	it('allows options to be passed to the magic word', () => 
-		ctxify([
+		let result = ctxify.render(intermediate)
+
+		expect(result).to.match(
+				/The date is \w+, \w+ \d+, \d+ \d+:\d+ (AM|PM)/
+		)
+	})
+
+	it('allows options to be passed to the magic word', async function(){ 
+		let intermediate = await ctxify.ctxify([
 			"The time is ",
 			{"#!moment":{format: 'LT'}}
 		])
-		.then(renderAnyElement)
-		.then(result => {
-			expect(result).to.match(
-				/The time is \d+:\d+ (AM|PM)/
-			)
-		})
-	)
 
-	it('allows an array of arguments to be passed to magic word options', () => 
-		ctxify([
+		let result = ctxify.render(intermediate)
+
+		expect(result).to.match(
+			/The time is \d+:\d+ (AM|PM)/
+		)
+	})
+
+	it('allows an array of arguments to be passed to magic word options', async function(){
+		let intermediate = await ctxify.ctxify([
 			"In one week it will be ",
 			{"#!moment": {"add": [7, "day"]} }
 		])
-		.then(renderAnyElement)
-		.then(result => {
-			expect(result).to.match(
+		let result = ctxify.render(intermediate)
+		
+		expect(result).to.match(
 				/In one week it will be \w+, \w+ \d+, \d+ \d+:\d+ (AM|PM)/
-			)
-		})
-	)
+		)
+	})
 })
 
 
@@ -94,22 +96,21 @@ The data structure that is transformed into HTML
 is an object with one property, its label or tagName,
 and an object containing the attributes.
 **/
-describe('More complex structures', () => {
-	it('A simple transform from labeled object to HTML', () => 
-		ctxify(
+describe('More complex structures', function(){
+	it('A simple transform from labeled object to HTML', function(){
+		let result = ctxify.render(
 			{'div':{
 				'id'         : 'myDiv',
 				'textContent': 'Some text node'
 			}}
 		)
-		.then(renderAnyElement)
-		.then(result => {
-			expect(result).to.equal('\n<div id="myDiv">Some text node</div>')
-		})
-	)
+		expect(result).to.equal(
+			'\n<div id="myDiv">Some text node</div>'
+		)
+	})
 
-	it('Applies the same transform to childNodes, such as a list element', () =>
-		ctxify(
+	it('Applies the same transform to childNodes, such as a list element', function(){
+		let result = ctxify.render(
 			{'ul':{
 				'id' : 'mylist',
 				'childNodes': [
@@ -119,47 +120,35 @@ describe('More complex structures', () => {
 				]
 			}}
 		)
-		.then(renderAnyElement)
-		.then(result => {
-			expect(result).to.equal('\n' +
-				'<ul id="mylist">' +  '\n' +
-					'<li>one</li>'   +  '\n' +
-					'<li>two</li>'   +  '\n' +
-					'<li>three</li>' +
-				'</ul>'
-			)
-		})
-	)
+		expect(result).to.equal('\n' +
+			'<ul id="mylist">' +  '\n' +
+				'<li>one</li>'   +  '\n' +
+				'<li>two</li>'   +  '\n' +
+				'<li>three</li>' +
+			'</ul>'
+		)
+	})
 })
 
-describe('Deals with CSS in the same JSON syntax', () => {
-	const {
-		ctxifyCSSRuleValuePairs,
-		ctxifyCSSSelectorSet,
-		renderCSSSelectorSet,
-		renderCSSRuleValuePairs
-	} = require('../ctxify')
+describe('Deals with CSS in the same JSON syntax', function(){
 
-	it('renders rule value pairs into CSS syntax', () => 
-		ctxifyCSSRuleValuePairs({
+	it('renders rule value pairs into CSS syntax', function(){ 
+		let result = ctxify.renderCSSRuleValuePairs({
 			"border":"none",
 			"box-sizing":"border-box",
 			"color": "pink",
 			"text-decoration": "none",
 		})
-		.then(renderCSSRuleValuePairs)
-		.then(result => {
-			expect(result).to.equal(
-				'border: none; '           +
-				'box-sizing: border-box; ' +
-				'color: pink; '            +
-				'text-decoration: none;'  
-			)
-		})
-	)
+		expect(result).to.equal(
+			'border: none; '           +
+			'box-sizing: border-box; ' +
+			'color: pink; '            +
+			'text-decoration: none;'  
+		)
+	})
 
-	it('renders the contents of a style tag', () => 
-		ctxifyCSSSelectorSet({
+	it('renders the contents of a style tag', function(){ 
+		let result = ctxify.renderCSSSelectorSet({
 			"*": {
 				"box-sizing":"border-box",
 				"padding":"none"
@@ -170,21 +159,18 @@ describe('Deals with CSS in the same JSON syntax', () => {
 				"border-width": "3px"
 			}
 		})
-		.then(renderCSSSelectorSet)
-		.then(result => {
-			expect(result).to.equal(
-				'* {'                        +
-					'box-sizing: border-box; ' +
-					'padding: none;'           +
-				'}'                          + '\n' +
-				'li.selected {'              +
-					'border-color: red; '      +
-					'border-style: dotted; '   +
-					'border-width: 3px;'       +
-				'}'
-			)
-		})
-	)
+		expect(result).to.equal(
+			'* {'                        +
+				'box-sizing: border-box; ' +
+				'padding: none;'           +
+			'}'                          + '\n' +
+			'li.selected {'              +
+				'border-color: red; '      +
+				'border-style: dotted; '   +
+				'border-width: 3px;'       +
+			'}'
+		)
+	})
 
 	/**
 	When expressing a CSS Selector Set as a single object,
@@ -193,8 +179,8 @@ describe('Deals with CSS in the same JSON syntax', () => {
 	so ctxifyCSSSelectorSet will apply itself to an array
 	and concatentate the results.
 	**/
-	it('also accepts an array in order to support duplicate selectors', () =>
-		ctxifyCSSSelectorSet([{
+	it('also accepts an array in order to support duplicate selectors', function(){
+		let result = ctxify.renderCSSSelectorSet([{
 			"*": {
 				"box-sizing":"border-box",
 			}
@@ -204,9 +190,7 @@ describe('Deals with CSS in the same JSON syntax', () => {
 				"margin":"none"
 			}
 		}])
-		.then(renderCSSSelectorSet)
-		.then(result => {
-			expect(result).to.equal(
+		expect(result).to.equal(
 				'* {'                       +
 					'box-sizing: border-box;' +
 				'}'                         + '\n' +
@@ -215,6 +199,5 @@ describe('Deals with CSS in the same JSON syntax', () => {
 					'margin: none;'           +
 				'}'
 			)
-		})
-	)
+	})
 })
