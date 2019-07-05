@@ -47,9 +47,6 @@ function rollupPairs(accumulator, current){
 }
 
 function rollupObjects(accumulator, current){
-	// this function is spoonfed each object that is being committed to the graph
-	// so here's the opportunity to
-	// this.emit(new Event('glitch', 'timecode namespace+dotaccess JSON encoded value'))
   return Object.assign(accumulator, current)
 }
 
@@ -86,13 +83,10 @@ function renderAnyElement(globject){
 
 	if(element == '!'){
 		return `\n<!-- ${JSON.stringify(attributePairs)} -->\n`
-	}
-
-	if(['String', 'Array'].includes(realType(attributePairs))){
+	} else if(['String', 'Array'].includes(realType(attributePairs))){
 		innerHTML.push(renderAnyElement(attributePairs))
 		return interpolate(element, outerHTML, innerHTML)
-	}
-	if(element == 'style'){
+	} else if(element == 'style'){
 		return renderCSSSelectorSet(attributePairs)
 	}
 
@@ -126,53 +120,17 @@ function renderStyleElement(globject){
  	return interpolate(element, null, renderCSSSelectorSet(cssSelectorSet))
 }
 
-/**
-A selector set looks like 
-TODO: array of rules support,
-
-[ {h2: {
-	  font-size: 32pt;
-	  font-weight: normal;
-	}},
-	{h3: {
-		font-size: 24pt;
-		font-family: monospace;
-	}}
-]
-
-or, normally, one name per object.
-
-{
-	h2: {
-	  font-size: 32pt;
-	  font-weight: normal;
-	},
-	h3: {
-		font-size: 24pt;
-		font-family: monospace;
-	}
-}
-
-otherwise, you'll miss out on cascading rules, it will simply omit earlier values in your object.
-
-If you want them to cascade, put them in arrays.
-
-*/
 function renderCSSSelectorSet(cssSelectorSet){
 	if(Array.isArray(cssSelectorSet)){
-		return cssSelectorSet.map(cssSelectorSet).join('\n')
+		return cssSelectorSet.map(renderCSSSelectorSet).join('\n')
+	} else {
+		return Object.entries(cssSelectorSet).map(
+			([selector, ruleValuePair]) => 
+				selector[0] == '@'
+					? `${selector} {${renderCSSSelectorSet(ruleValuePair)}}`
+					: `${selector} {${renderCSSRuleValuePairs(ruleValuePair)}}`
+		).join('\n')
 	}
-	let innerCSS = []
-	for(cssSelector in cssSelectorSet){
-		if(cssSelector[0] == '@'){
-			atRuleValue = cssSelectorSet[cssSelector]
-			innerCSS.push(`${cssSelector} {${renderCSSSelectorSet(atRuleValue)}}`)
-		} else {
-			ruleValuePairs = cssSelectorSet[cssSelector]
-			innerCSS.push(`${cssSelector} {${renderCSSRuleValuePairs(ruleValuePairs)}}`)
-		}
-	}
-	return interpolate('style', undefined, innerCSS)
 }
 
 
@@ -186,7 +144,6 @@ function renderCSSSelectorSet(cssSelectorSet){
 function renderCSSRuleValuePairs(RuleValuePairs, seperator = ' '){
 	// assertSchema('CSSRuleValuePairs', RuleValuePairs)
 	return Object.entries(RuleValuePairs).map(([rule, value]) => 
-		`${rule}: ${Array.isArray(value) ? value.join('') : value};`
 		`${rule}: ${Array.isArray(value) ? value.join('') : value};`
 	).join(seperator)
 }
@@ -301,9 +258,13 @@ must match schema CSSSelectorSet,
 @return {object} the same object structure with all the rule pairs checked for magic values.
 **/
 async function ctxifyCSSSelectorSet(cssSelectorSet, ctx = {}){
-	// if(Array.isArray(cssSelectorSet)){
-	// 	return cssSelectorSet.map(ctxifyCSSSelectorSet)
-	// }
+	if(Array.isArray(cssSelectorSet)){
+		return Promise.all(
+			cssSelectorSet.map(each =>
+				ctxifyCSSSelectorSet(each, ctx)
+			)
+		)
+	}
 	return Promise.all(
 		Object.entries(cssSelectorSet).map(
 			async ([selector, RuleValuePairs]) => {
@@ -318,31 +279,14 @@ async function ctxifyCSSSelectorSet(cssSelectorSet, ctx = {}){
 			cssSelectorEntries.reduce(rollupObjects, new Object)
 		)
 }
-/**
-cssRuleValuePairs looks like 
-{
-	rule: value,
-	rule: value
-}
 
-Wait for all entries in the rules to return and resolve,
-then reduce them into one big object and return that.
-**/
 async function ctxifyCSSRuleValuePairs(cssRuleValuePairs, ctx){
 	//assertSchema('cssRuleValuePairs', cssRuleValuePairs)
 	return Promise.all(
 		Object.entries(cssRuleValuePairs)
-			.map(async ([rule, value]) => {
-				return {[rule]: await ctxify(value, ctx)}
-
-				// if(realType(value) == 'Object'){
-				// 	return {[rule]: await ctxifyValue(value, ctx)}
-				// }else if(isMagic(value)){
-				// 	return {[rule]: await ctxifyValue(value, ctx)}
-				// } else {
-				// 	return {[rule]: value}
-				// }
-			})
+			.map(async ([rule, value]) => (
+				{[rule]: await ctxify(value, ctx)}
+			))
 	).then(cssRuleValueEntries => 
 		cssRuleValueEntries.reduce(rollupObjects, new Object)
 	)
@@ -357,4 +301,6 @@ module.exports = {
 	ctxifyCSSRuleValuePairs,
 	renderAnyElement,
 	renderStyleElement,
+	renderCSSSelectorSet,
+	renderCSSRuleValuePairs
 }
