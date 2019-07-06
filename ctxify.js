@@ -62,7 +62,11 @@ module.exports = class ctxify {
 	async ctxifyValue(attributeValue, ctx){
 		if(isMagic(attributeValue)){
 			let [magicWord, magicArg] = parseMagic(attributeValue)
-			return require(this.config[magicWord])(magicArg, null, ctx)
+			return require(
+				this.config[magicWord]
+			).call(
+				this, magicArg, null, ctx
+			)		
 		} else {
 			return attributeValue
 		}
@@ -82,7 +86,11 @@ module.exports = class ctxify {
 		if(isMagic(label)){
 			//assertSchema('magicLabel', label)
 			let [magicWord, magicArg] = parseMagic(label)
-			return require(this.config[magicWord])(magicArg, props, ctx) // leaves out the options, magicword will use defaults for merge. 
+			return require(
+				this.config[magicWord]
+			).call(
+				this, magicArg, props, ctx
+			)
 		} else if(label == 'style'){
 			return this.ctxifyStyleElement(globject, ctx)
 		} else {
