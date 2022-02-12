@@ -11,7 +11,7 @@
   "dependencies": {
     "@ctxify/moment": "1.1.0",
     "@ctxify/write": "1.0.0",
-    "ajv": "6.10.0"
+    "ajv": "6.12.3"
   },
   "config": {
     "write": "@ctxify/write",
